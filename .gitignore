@@ -1,0 +1,11 @@
+# keil project folder
+keil/*
+
+# temporary file
+out.csv
+
+# outputed file
+beep.h
+
+# midi file
+*.mid

@@ -10,8 +10,11 @@ def freqToTimer(freq):
 f = open('.\\tone.h', "w")
 f.write("unsigned int code tonetofreq[] = {")
 for i in range(120):
-    print(i)
+    print(f'\r{i}/120  ', end='')
+    if not (i % 8):
+        f.write('\n')
     f.write(str(int(freqToTimer(midiNumToFreq(i)))))
     f.write(', ')
+    
 f.write('};')
 f.close()

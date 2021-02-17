@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
 import argparse, csv
 
 parser = argparse.ArgumentParser(description='Convert midi files to beep tunes')
@@ -16,7 +17,7 @@ def getDuration(row, noteStart):
     global tempoMultiplier
     d = int((int(row[1].strip()) - noteStart)*tempoMultiplier * speedAdjust/40)
     if d == 0: d = 1
-    return str(d)
+    return d
 
 def getSleep(row, pauseStart):
     global tempoMultiplier
@@ -24,7 +25,7 @@ def getSleep(row, pauseStart):
 
 def getFreq(row):
     #return str(midiNumToFreq(int(row[4].strip())))
-    return row[4].strip()
+    return int(row[4].strip())
 
 def midiNumToFreq(midiNumber):
     return 440 * pow(2, (midiNumber-69)/float(12))
@@ -35,25 +36,30 @@ def buildBeep():
     noteStart = 0
     pauseStart = 0
     noteison = 0
+    count = -1
     for row in csvFile:
         if 'Note_on_c' in row[2] or 'Note_off_c' in row[2]:
             if (0 == int(row[5].strip()) or noteison == 1)and int(row[0].strip()) == track:
                 noteison=0
                 pauseStart = int(row[1].strip())
-                beepOut += '\'B\',  ' + getFreq(row) + ', ' + getDuration(row, noteStart) + ', '
+                beepOut += '\'B\',  ' + '%2d'%getFreq(row) + ', ' + '%2d'%getDuration(row, noteStart) + ', '
+                count = count+1 or 1
             elif int(row[0].strip()) == track:
                 noteison=1
                 noteStart = int(row[1].strip())
                 if getSleep(row, pauseStart) >= 1:
-                    beepOut += '\'S\', ' + str(getSleep(row, pauseStart)) + ', '
+                    beepOut += '\'S\', ' + '%2d'%getSleep(row, pauseStart) + ', '
+                    count += 1
+        if not (count % 8):
+            beepOut += '\n\t'
         if 'Tempo' in row[2]:
             global tempoMultiplier
             tempo = int(row[3].strip())
             tempoMultiplier = tempo /480/1000
     outputFile = open('beep.h', 'w')
-    outputFile.write('unsigned char code beeptable[] = {')
+    outputFile.write('unsigned char code beeptable[] = {\n\t')
     outputFile.write(beepOut)
-    outputFile.write('\'T\'};')
+    outputFile.write('\'T\'\n};')
     outputFile.close()
     return
 
